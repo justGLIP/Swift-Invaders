@@ -9,23 +9,23 @@
 /* Begin PBXBuildFile section */
 		9F201CD827C54F7900E01F89 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F201CD727C54F7900E01F89 /* AppDelegate.swift */; };
 		9F201CDA27C54F7900E01F89 /* GameScene.sks in Resources */ = {isa = PBXBuildFile; fileRef = 9F201CD927C54F7900E01F89 /* GameScene.sks */; };
-		9F201CDC27C54F7900E01F89 /* Actions.sks in Resources */ = {isa = PBXBuildFile; fileRef = 9F201CDB27C54F7900E01F89 /* Actions.sks */; };
 		9F201CDE27C54F7900E01F89 /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F201CDD27C54F7900E01F89 /* GameScene.swift */; };
 		9F201CE027C54F7900E01F89 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F201CDF27C54F7900E01F89 /* GameViewController.swift */; };
 		9F201CE327C54F7900E01F89 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9F201CE127C54F7900E01F89 /* Main.storyboard */; };
 		9F201CE527C54F7A00E01F89 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9F201CE427C54F7A00E01F89 /* Assets.xcassets */; };
+		9F201CF027C55B0C00E01F89 /* scene.atlas in Resources */ = {isa = PBXBuildFile; fileRef = 9F201CEF27C55B0C00E01F89 /* scene.atlas */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		9F201CD427C54F7900E01F89 /* Swift Invaders.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Swift Invaders.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F201CD727C54F7900E01F89 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		9F201CD927C54F7900E01F89 /* GameScene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = GameScene.sks; sourceTree = "<group>"; };
-		9F201CDB27C54F7900E01F89 /* Actions.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Actions.sks; sourceTree = "<group>"; };
 		9F201CDD27C54F7900E01F89 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
 		9F201CDF27C54F7900E01F89 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
 		9F201CE227C54F7900E01F89 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		9F201CE427C54F7A00E01F89 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9F201CE627C54F7A00E01F89 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9F201CEF27C55B0C00E01F89 /* scene.atlas */ = {isa = PBXFileReference; lastKnownFileType = folder.skatlas; path = scene.atlas; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,16 +58,24 @@
 		9F201CD627C54F7900E01F89 /* Swift Invaders */ = {
 			isa = PBXGroup;
 			children = (
+				9F201CF127C55B2600E01F89 /* Sounds */,
 				9F201CD727C54F7900E01F89 /* AppDelegate.swift */,
 				9F201CD927C54F7900E01F89 /* GameScene.sks */,
-				9F201CDB27C54F7900E01F89 /* Actions.sks */,
 				9F201CDD27C54F7900E01F89 /* GameScene.swift */,
 				9F201CDF27C54F7900E01F89 /* GameViewController.swift */,
 				9F201CE127C54F7900E01F89 /* Main.storyboard */,
+				9F201CEF27C55B0C00E01F89 /* scene.atlas */,
 				9F201CE427C54F7A00E01F89 /* Assets.xcassets */,
 				9F201CE627C54F7A00E01F89 /* Info.plist */,
 			);
 			path = "Swift Invaders";
+			sourceTree = "<group>";
+		};
+		9F201CF127C55B2600E01F89 /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Sounds;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -127,10 +135,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9F201CF027C55B0C00E01F89 /* scene.atlas in Resources */,
 				9F201CE327C54F7900E01F89 /* Main.storyboard in Resources */,
 				9F201CDA27C54F7900E01F89 /* GameScene.sks in Resources */,
 				9F201CE527C54F7A00E01F89 /* Assets.xcassets in Resources */,
-				9F201CDC27C54F7900E01F89 /* Actions.sks in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -285,6 +293,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = H7U8A6PAA4;
 				INFOPLIST_FILE = "Swift Invaders/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -304,6 +313,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = H7U8A6PAA4;
 				INFOPLIST_FILE = "Swift Invaders/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
