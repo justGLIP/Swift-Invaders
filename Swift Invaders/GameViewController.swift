@@ -20,14 +20,14 @@ class GameViewController: UIViewController {
                 // Set the scale mode to scale to fit the window
                 scene.scaleMode = .aspectFill
                 // Present the scene
-                //scene.size = self.view.bounds.size
+                //scene.anchorPoint = CGPoint(x:0,y:0)
                 view.presentScene(scene)
             }
             
             view.ignoresSiblingOrder = true
-            
-            view.showsFPS = true
-            view.showsNodeCount = true
+           // view.showsPhysics = true
+           // view.showsFPS = true
+           // view.showsNodeCount = true
         }
     }
 

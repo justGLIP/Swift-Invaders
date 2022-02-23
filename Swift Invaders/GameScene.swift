@@ -10,13 +10,14 @@ import GameplayKit
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
+    //MARK: Declarations
+    
     //Variables
     var enemies : [SKNode] = []
-    //var enemyShots : [SKNode] = []
-    //var playerShots : [SKNode] = []
     var shipSize: CGSize = CGSize(width: 0, height: 0)
     var isShielded = true
     var isDamaged = false
+    var canFire = true
     
     
     //Textures
@@ -51,16 +52,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var controls = SKNode()
     
     //Bit Masks
-    let playerMask : UInt32 = 0x1 << 1
-    let enemyMask : UInt32 = 0x1 << 2
-    let playerShotMask : UInt32 = 0x1 << 3
-    let enemyShotMask : UInt32 = 0x1 << 4
+    let playerMask : UInt32 = 0x1 << 0
+    let enemyMask : UInt32 = 0x1 << 1
+    let playerShotMask : UInt32 = 0x1 << 2
+    let enemyShotMask : UInt32 = 0x1 << 3
+    let nothingMask : UInt32 = 0x1 << 4
 
     //Timers
     var enemyShotTimer = Timer()
-    var tempTimer = Timer()
+    var playerHitTimer = Timer()
+    var enemyHitTimer = Timer()
     
+    
+    //MARK: didMove
     override func didMove(to view: SKView) {
+        
         playerTexture = SKTexture(imageNamed: "player")
         enemyTexture = SKTexture(imageNamed: "enemyShip")
         playerShotTexture = SKTexture(imageNamed: "laserGreen")
@@ -81,6 +87,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
       
     }
     
+    //MARK: Creating things
+    
     func createObjects() {
         
         createEnemies()
@@ -89,6 +97,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         startTimers()
         
         self.addChild(player)
+        self.addChild(playerShot)
         self.addChild(enemy)
         self.addChild(enemyShot)
         self.addChild(controls)
@@ -100,6 +109,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         playerSprite.zPosition = 1
         playerSprite.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: playerSprite.size.width - 10, height: playerSprite.size.height - 40))
         playerSprite.physicsBody?.categoryBitMask = playerMask
+        playerSprite.physicsBody?.contactTestBitMask = enemyShotMask
         playerSprite.physicsBody?.isDynamic = false
         playerSprite.size = CGSize(width: shipSize.width * 1.5, height: shipSize.height * 1.5)
         
@@ -118,6 +128,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let enemyShip = SKSpriteNode(texture: enemyTexture)
             enemyShip.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: enemyShip.size.width - 10, height: enemyShip.size.height - 10))
             enemyShip.physicsBody?.categoryBitMask = enemyMask
+            enemyShip.physicsBody?.contactTestBitMask = playerShotMask
+            enemyShip.physicsBody?.collisionBitMask = playerShotMask
             enemyShip.physicsBody?.affectedByGravity = false
             shipSize = CGSize(width: self.frame.width / 15, height: self.frame.width / 15)
             enemyShip.size = shipSize
@@ -126,33 +138,61 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             switch i {
             case 0...4:
                 enemyShip.position = CGPoint(x: CGFloat(i) * enemyShip.size.width * 2 + gap,
-                                             y: (scene?.size.height)! - (enemyTexture.size().height + CGFloat(120)))
+                                             y: (scene?.size.height)! - (enemyTexture.size().height * 2))
             case 5...9:
                 enemyShip.position = CGPoint(x: (CGFloat(i) - 5) * enemyShip.size.width * 2 + gap,
-                                             y: (scene?.size.height)! - (enemyTexture.size().height + CGFloat(160)))
+                                             y: (scene?.size.height)! - (enemyTexture.size().height * 4))
             case 10...14:
                 enemyShip.position = CGPoint(x: (CGFloat(i) - 10) * enemyShip.size.width * 2 + gap,
-                                             y: (scene?.size.height)! - (enemyTexture.size().height + CGFloat(200)))
+                                             y: (scene?.size.height)! - (enemyTexture.size().height * 6))
             case 15...19:
                 enemyShip.position = CGPoint(x: (CGFloat(i) - 15) * enemyShip.size.width * 2 + gap,
-                                             y: (scene?.size.height)! - (enemyTexture.size().height + CGFloat(240)))
+                                             y: (scene?.size.height)! - (enemyTexture.size().height * 8))
             default:
                 print("Bazinga!")
             }
             enemies.append(enemyShip)
             enemy.addChild(enemies[i])
+            enemy.physicsBody?.categoryBitMask = enemyMask
+            enemy.physicsBody?.contactTestBitMask = playerShotMask
+            enemy.physicsBody?.collisionBitMask = playerShotMask
         }
     }
     
-    @objc func addEnemyShot() {
-        enemyShotSprite = SKSpriteNode(texture: enemyShotTexture)
-        enemyShotSprite.physicsBody = SKPhysicsBody(rectangleOf: enemyShotSprite.size)
-        enemyShotSprite.physicsBody?.categoryBitMask = enemyShotMask
-        enemyShotSprite.physicsBody?.allowsRotation = false
-        enemyShotSprite.zPosition = 1
-        enemyShotSprite.physicsBody?.restitution = 0
-        enemyShotSprite.position = enemies[Int.random(in: 15...19)].position
-        enemyShot.addChild(enemyShotSprite)
+    func addEnemyShot() {
+        if enemies.count > 0 {
+            enemyShotSprite = SKSpriteNode(texture: enemyShotTexture)
+            enemyShotSprite.physicsBody = SKPhysicsBody(rectangleOf: enemyShotSprite.size)
+            enemyShotSprite.physicsBody?.categoryBitMask = enemyShotMask
+            enemyShotSprite.physicsBody?.contactTestBitMask = playerMask
+            enemyShotSprite.physicsBody?.collisionBitMask = playerMask
+            enemyShotSprite.physicsBody?.allowsRotation = false
+            enemyShotSprite.zPosition = 2
+            enemyShotSprite.physicsBody?.restitution = 0
+            enemyShotSprite.position = enemies[Int.random(in: 0...enemies.count - 1)].position
+            enemyShot.addChild(enemyShotSprite)
+            enemyShot.physicsBody?.categoryBitMask = enemyShotMask
+            enemyShot.physicsBody?.collisionBitMask = playerMask
+            enemyShot.physicsBody?.contactTestBitMask = playerMask
+        }
+    }
+    
+    func addPlayerShot() {
+        playerShotSprite = SKSpriteNode(texture: playerShotTexture)
+        playerShotSprite.physicsBody = SKPhysicsBody(rectangleOf: playerShotSprite.size)
+        playerShotSprite.physicsBody?.categoryBitMask = playerShotMask
+        playerShotSprite.physicsBody?.contactTestBitMask = enemyMask
+        playerShotSprite.physicsBody?.collisionBitMask = enemyMask
+        playerShotSprite.physicsBody?.allowsRotation = false
+        playerShotSprite.physicsBody?.affectedByGravity = false
+        playerShotSprite.zPosition = 1
+        playerShotSprite.physicsBody?.restitution = 0
+        playerShotSprite.position = CGPoint(x: player.position.x + self.frame.midX, y: playerSprite.position.y + 10)
+        playerShot.addChild(playerShotSprite)
+        playerShot.physicsBody?.categoryBitMask = playerShotMask
+        playerShot.physicsBody?.contactTestBitMask = enemyMask
+        playerShot.physicsBody?.collisionBitMask = enemyMask
+        playerShotSprite.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 10))
         
     }
     
@@ -186,16 +226,100 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         controls.alpha = 0.7
     }
     
-    func touchDown(atPoint pos : CGPoint) {
-       
+    
+    //MARK: Physics Interactions
+    
+    func didBegin(_ contact: SKPhysicsContact) {
+        var firstBody: SKPhysicsBody
+        var secondBody: SKPhysicsBody
+                 
+        if(contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask){
+            firstBody = contact.bodyA
+            secondBody = contact.bodyB
+        } else {
+            firstBody = contact.bodyB
+            secondBody = contact.bodyA
+        }
+        
+        
+        //Попадание в игрока
+        if((firstBody.categoryBitMask & playerMask != 0) && (secondBody.categoryBitMask & enemyShotMask != 0)){
+            print("Player got Shot!")
+            enemyShotSprite.texture = SKTexture(imageNamed: "laserRedShot")
+            enemyShotSprite.size = SKTexture(imageNamed: "laserRedShot").size()
+            enemyShotSprite.setScale(1.5)
+            playerHitTimer.invalidate()
+            playerHitTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false, block: { [self]_ in
+            
+                if isShielded {
+                    shieldSprite.removeFromParent()
+                    enemyShotSprite.removeFromParent()
+                    isShielded = false
+                } else if isDamaged == false {
+                    isDamaged = true
+                    enemyShotSprite.removeFromParent()
+                    playerSprite.texture = SKTexture(imageNamed: "playerDamaged")
+                } else {
+                    playerSprite.removeFromParent()
+                    enemyShotSprite.removeFromParent()
+                }
+            })
+        }
+        
+        //Попадание во врага
+        if((firstBody.categoryBitMask & enemyMask != 0) && (secondBody.categoryBitMask & playerShotMask != 0)){
+            playerShotSprite.texture = SKTexture(imageNamed: "laserGreenShot")
+            playerShotSprite.size = SKTexture(imageNamed: "laserGreenShot").size()
+            //playerShotSprite.setScale(1.05)
+            var index = 0
+            for i in enemies.indices {
+                if enemies[i] == firstBody.node {
+                    index = i
+                }
+            }
+            enemies.remove(at: index)
+            print(enemies.count)
+            firstBody.node?.removeFromParent()
+            secondBody.applyImpulse(CGVector(dx: 0, dy: 2))
+            enemyHitTimer.invalidate()
+            enemyHitTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false, block: { [self]_ in
+                
+                secondBody.node?.removeFromParent()
+                //enemies.removeLast()
+                canFire = true
+            })
+        }
     }
+    
+    
+    func touchDown(atPoint pos : CGPoint) {
+        if leftSprite.contains(pos) {
+            let moveLeft = SKAction.moveTo(x: -self.frame.midX + playerSprite.size.width * 1.5, duration: 1)
+            player.run(moveLeft)
+        }
+        
+        if rightSprite.contains(pos) {
+            let moveRight = SKAction.moveTo(x: self.frame.midX - playerSprite.size.width * 1.5, duration: 1)
+            player.run(moveRight)
+            //print (player.position)
+        }
+        
+        if fireSprite.contains(pos) {
+            if canFire {
+                addPlayerShot()
+                canFire = false
+            }
+        }
+    }
+    
+    
     
     func touchMoved(toPoint pos : CGPoint) {
         
     }
     
     func touchUp(atPoint pos : CGPoint) {
-        
+        player.removeAllActions()
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -218,28 +342,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     override func update(_ currentTime: TimeInterval) {
         // Called before each frame is rendered
-        if enemyShotSprite.intersects(playerSprite) {
-            enemyShotSprite.texture = SKTexture(imageNamed: "laserRedShot")
-            enemyShotSprite.size = SKTexture(imageNamed: "laserRedShot").size()
-            enemyShotSprite.setScale(3)
-            tempTimer.invalidate()
-            tempTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false, block: { [self]_ in
-                enemyShotSprite.removeFromParent()
-                if isShielded {
-                    shieldSprite.removeFromParent()
-                    isShielded = false
-                } else if isDamaged == false {
-                    isDamaged = true
-                    playerSprite.texture = SKTexture(imageNamed: "playerDamaged")
-                } else {
-                    playerSprite.removeFromParent()
-                }
-            })
-            
-        }
+
         
         if enemyShotSprite.position.y < -5 {
             enemyShotSprite.removeFromParent()
+        }
+        
+        if playerShotSprite.position.y > self.frame.maxY + 10 {
+            playerShotSprite.removeFromParent()
+            canFire = true
         }
     }
 }
