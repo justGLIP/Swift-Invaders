@@ -10,18 +10,22 @@ import GameplayKit
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
-    //MARK: Declarations
+    //MARK: Объявления
     
-    //Variables
+    //Переменные
     var enemies : [SKNode] = []
     var shipSize: CGSize = CGSize(width: 0, height: 0)
     var isShielded = true
     var isDamaged = false
     var canFire = true
+    var enemyDir: CGFloat = 1
     
     
     //Textures
     var playerTexture : SKTexture!
+    var playerCurrentTexture : SKTexture!
+    var playerLeftTexture : SKTexture!
+    var playerRightTexture : SKTexture!
     var enemyTexture : SKTexture!
     var playerShotTexture : SKTexture!
     var enemyShotTexture : SKTexture!
@@ -68,6 +72,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     override func didMove(to view: SKView) {
         
         playerTexture = SKTexture(imageNamed: "player")
+        playerLeftTexture = SKTexture(imageNamed: "playerLeft")
+        playerRightTexture = SKTexture(imageNamed: "playerRight")
         enemyTexture = SKTexture(imageNamed: "enemyShip")
         playerShotTexture = SKTexture(imageNamed: "laserGreen")
         enemyShotTexture = SKTexture(imageNamed: "laserRed")
@@ -107,7 +113,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         playerSprite = SKSpriteNode(texture: playerTexture)
         playerSprite.position = CGPoint(x: self.frame.midX, y: playerSprite.size.height * 2 + 140)
         playerSprite.zPosition = 1
-        playerSprite.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: playerSprite.size.width - 10, height: playerSprite.size.height - 40))
+        playerSprite.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: playerSprite.size.width - 20, height: playerSprite.size.height - 40))
         playerSprite.physicsBody?.categoryBitMask = playerMask
         playerSprite.physicsBody?.contactTestBitMask = enemyShotMask
         playerSprite.physicsBody?.isDynamic = false
@@ -118,6 +124,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         shieldSprite.zPosition = 1
         shieldSprite.size = CGSize(width: shipSize.width * 2.5, height: shipSize.height * 2.5)
         
+        playerCurrentTexture = playerTexture
+        
         player.addChild(playerSprite)
         player.addChild(shieldSprite)
         //player.setScale(0.7)
@@ -126,7 +134,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func createEnemies() {
         for i in 0...19 {
             let enemyShip = SKSpriteNode(texture: enemyTexture)
-            enemyShip.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: enemyShip.size.width - 10, height: enemyShip.size.height - 10))
+            enemyShip.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: enemyShip.size.width - 40, height: enemyShip.size.height - 10))
             enemyShip.physicsBody?.categoryBitMask = enemyMask
             enemyShip.physicsBody?.contactTestBitMask = playerShotMask
             enemyShip.physicsBody?.collisionBitMask = playerShotMask
@@ -153,6 +161,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
             enemies.append(enemyShip)
             enemy.addChild(enemies[i])
+            enemy.physicsBody?.isDynamic = true
             enemy.physicsBody?.categoryBitMask = enemyMask
             enemy.physicsBody?.contactTestBitMask = playerShotMask
             enemy.physicsBody?.collisionBitMask = playerShotMask
@@ -258,7 +267,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 } else if isDamaged == false {
                     isDamaged = true
                     enemyShotSprite.removeFromParent()
-                    playerSprite.texture = SKTexture(imageNamed: "playerDamaged")
+                    playerCurrentTexture = SKTexture(imageNamed: "playerDamaged")
+                    playerSprite.texture = playerCurrentTexture
                 } else {
                     playerSprite.removeFromParent()
                     enemyShotSprite.removeFromParent()
@@ -291,15 +301,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
+    //MARK: Касания экрана
     
     func touchDown(atPoint pos : CGPoint) {
+        
         if leftSprite.contains(pos) {
             let moveLeft = SKAction.moveTo(x: -self.frame.midX + playerSprite.size.width * 1.5, duration: 1)
+            playerSprite.texture = playerLeftTexture
             player.run(moveLeft)
         }
         
         if rightSprite.contains(pos) {
             let moveRight = SKAction.moveTo(x: self.frame.midX - playerSprite.size.width * 1.5, duration: 1)
+            playerSprite.texture = playerRightTexture
             player.run(moveRight)
             //print (player.position)
         }
@@ -320,10 +334,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func touchUp(atPoint pos : CGPoint) {
         player.removeAllActions()
+        playerSprite.texture = playerCurrentTexture
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        
         for t in touches { self.touchDown(atPoint: t.location(in: self)) }
     }
     
@@ -336,13 +350,29 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        //for t in touches { self.touchUp(atPoint: t.location(in: self)) }
+        for t in touches { self.touchUp(atPoint: t.location(in: self)) }
     }
     
     
     override func update(_ currentTime: TimeInterval) {
         // Called before each frame is rendered
-
+        var moveDown = false
+        for i in enemies.indices {
+            if enemies[i].position.x >= self.frame.size.width - 100 {
+                //enemies[0].position.x -= 1
+                enemyDir = -1
+                moveDown = true
+            } else if enemies[i].position.x <= 100 {
+                //enemies[0].position.x += 1
+                enemyDir = 1
+                moveDown = true
+            }
+            enemies[i].position.x += enemyDir
+        }
+        
+        for i in enemies.indices {
+            if moveDown { enemies[i].position.y -= enemyTexture.size().height }
+        }
         
         if enemyShotSprite.position.y < -5 {
             enemyShotSprite.removeFromParent()
